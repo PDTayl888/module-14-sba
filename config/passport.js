@@ -8,3 +8,33 @@ passport.use(new GitHubStrategy({
     callbackURL: process.env.GITHUB_CALLBACK_URL,
     scope: ['user:email']
   },
+  async (accessToken, refreshToken, profile, done) => {
+    try {
+        let user = await User.findOne({ githubId: profile.id });
+      if (user) return done(null, user);
+
+      const email = profile.emails && profile.emails[0] ? profile.emails[0].value : null;
+      if (!email) {
+          return done(new Error("No email found on GitHub profile"), null);
+      }
+
+      user = await User.findOne({ email });
+      if (user) {
+        user.githubId = profile.id;
+        await user.save();
+        return done(null, user);
+      }
+
+      user = await User.create({
+        email: email,
+        githubId: profile.id
+      });
+      return done(null, user);
+
+      } catch (error) {
+      return done(error, false);
+    }
+  }
+));
+
+module.exports = passport;
