@@ -3,7 +3,7 @@ const User = require("../models/User");
 
 const secret = process.env.JWT_SECRET;
 
-export function signToken(userId) {
+function signToken(userId) {
     return jwt.sign({ id: userId }, secret, { expiresIn: process.env.EXP });
 }
 
